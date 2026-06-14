@@ -125,5 +125,4 @@ def analyze_image_llm(image_bytes: bytes, api_key: str) -> dict:
         
     except Exception as e:
         logger.error(f"Error calling OpenAI Vision: {e}")
-        # In case of error, fallback to mock mode
-        return MOCK_MEALS[0]
+        raise e

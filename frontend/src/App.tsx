@@ -561,10 +561,26 @@ export default function App() {
       formData.append('api_key', 'dummy');
       try {
         const res = await fetch(`${API_BASE_URL}/vision/analyze`, { method: 'POST', body: formData });
-        if (!res.ok) throw new Error('AI service error');
+        if (!res.ok) {
+          const errData = await res.json().catch(() => null);
+          let errorMsg = 'AI service error';
+          if (errData) {
+            if (errData.details) {
+              try {
+                const parsedDetails = JSON.parse(errData.details);
+                errorMsg = parsedDetails.detail || errData.details;
+              } catch {
+                errorMsg = errData.details;
+              }
+            } else if (errData.error) {
+              errorMsg = errData.error;
+            }
+          }
+          throw new Error(errorMsg);
+        }
         setDetectedResult(await res.json());
-      } catch {
-        setCameraError('Analysis failed. Check that the AI service is running.');
+      } catch (err: any) {
+        setCameraError(`Analysis failed: ${err.message || err}`);
       } finally {
         setIsAnalyzing(false);
       }
