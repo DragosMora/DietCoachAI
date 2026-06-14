@@ -1,6 +1,6 @@
 {
-  "short_name": "DietCoach",
-  "name": "DietCoach AI Nutrition Coach",
+  "short_name": "DietCoachAI",
+  "name": "DietCoachAI",
   "icons": [
     {
       "src": "favicon.svg",
@@ -9,8 +9,8 @@
     }
   ],
   "start_url": "/",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
   "display": "standalone",
   "orientation": "portrait"
 }
