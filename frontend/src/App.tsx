@@ -6,7 +6,7 @@ import { localFoodDB, type FoodItem } from './localFoodDB';
 import { Html5Qrcode } from 'html5-qrcode';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const API_BASE_URL = 'http://192.168.1.136:3001/api';
+const API_BASE_URL = 'https://dietcoach-bff.onrender.com/api';
 
 const DEFAULT_PROFILE: UserProfile = {
   id: 'usr_982341',
@@ -601,11 +601,15 @@ export default function App() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
           throw new Error('Camera APIs are not supported or blocked (insecure HTTP context).');
         }
-        const html5QrCode = new Html5Qrcode("barcode-reader");
+        const html5QrCode = new Html5Qrcode("barcode-reader", {
+          verbose: false,
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+          }
+        });
         html5QrcodeRef.current = html5QrCode;
-        const config = { fps: 10, qrbox: { width: 250, height: 150 } };
-        
-        // Try to locate a back/rear camera using device list enumeration
+
+        let cameraId: string | null = null;
         try {
           const devices = await Html5Qrcode.getCameras();
           if (devices && devices.length > 0) {
@@ -615,26 +619,31 @@ export default function App() {
               device.label.toLowerCase().includes("environment") ||
               device.label.toLowerCase().includes("spate")
             );
-            const cameraId = backCamera ? backCamera.id : devices[0].id;
-            await html5QrCode.start(
-              cameraId,
-              config,
-              async (decodedText) => {
-                await handleBarcodeDetected(decodedText);
-              },
-              () => {
-                // Ignore verbose scanner logs
-              }
-            );
-            return;
+            cameraId = backCamera ? backCamera.id : devices[0].id;
           }
         } catch (e) {
           console.warn("Could not enumerate camera devices, falling back to facingMode constraint", e);
         }
 
-        // Fallback: start scanner using default environment facingMode constraint
+        // Configure high-resolution (720p) video constraints so tiny barcodes are sharp enough to parse
+        const videoConstraints: MediaTrackConstraints = cameraId ? {
+          deviceId: { exact: cameraId },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } : {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        };
+
+        const config = { 
+          fps: 15, // Higher frame rate for scanning speed
+          qrbox: { width: 280, height: 160 }, // Slightly larger scan area
+          videoConstraints: videoConstraints
+        };
+
         await html5QrCode.start(
-          { facingMode: "environment" },
+          cameraId || { facingMode: "environment" },
           config,
           async (decodedText) => {
             await handleBarcodeDetected(decodedText);
