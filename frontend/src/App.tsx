@@ -6,7 +6,9 @@ import { localFoodDB, type FoodItem } from './localFoodDB';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const API_BASE_URL = 'https://dietcoach-bff.onrender.com/api';
+const API_BASE_URL = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.startsWith('192.168.')
+  ? `http://${location.hostname}:3001/api`
+  : 'https://dietcoach-bff.onrender.com/api';
 
 const DEFAULT_PROFILE: UserProfile = {
   id: 'usr_982341',

@@ -1,6 +1,8 @@
 import { db, type UserProfile } from './db';
 
-const API_BASE_URL = 'https://dietcoach-bff.onrender.com/api';
+const API_BASE_URL = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.startsWith('192.168.')
+  ? `http://${location.hostname}:3001/api`
+  : 'https://dietcoach-bff.onrender.com/api';
 
 /**
  * Sync local data with the BFF server
