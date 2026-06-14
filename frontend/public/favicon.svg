@@ -36,8 +36,8 @@
 
   <!-- Apple & Scan Pattern Group -->
   <g transform="translate(106, 60)">
-    <!-- Apple Leaf -->
-    <path d="M190 40 C220 42 245 62 255 87 C229 89 204 71 194 46 Z" fill="url(#leaf-grad)" />
+    <!-- Apple Leaf (Centered directly above the apple dip) -->
+    <path d="M84 40 C114 42 139 62 149 87 C123 89 98 71 88 46 Z" fill="url(#leaf-grad)" />
     
     <!-- Apple Body -->
     <path d="M174 100 
