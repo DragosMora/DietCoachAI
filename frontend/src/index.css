@@ -83,17 +83,6 @@ input:focus, select:focus { border-color: var(--border-strong); outline: none; }
 input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 select option { background-color: var(--bg-panel); }
 
-/* Layout adjustments */
-.metrics-log-row {
-    display: grid;
-    grid-template-columns: 1.25fr 0.75fr;
-    gap: 0.75rem;
-}
-@media (max-width: 480px) {
-    .metrics-log-row {
-        grid-template-columns: 1.35fr 0.65fr;
-    }
-}
 
 /* Buttons */
 .primary-btn {

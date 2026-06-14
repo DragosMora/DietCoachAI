@@ -1007,15 +1007,13 @@ export default function App() {
               <h2>{editingLogId ? 'Edit Metrics' : 'Log Metrics'}</h2>
               <form onSubmit={saveMetrics}>
                 <div className="form-grid" style={{ gap: '0.85rem' }}>
-                  <div className="metrics-log-row">
-                    <div className="form-group">
-                      <label>Date</label>
-                      <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} />
-                    </div>
-                    <div className="form-group">
-                      <label>Weight (kg)</label>
-                      <input type="number" step="0.1" value={weightInput} onChange={e => setWeightInput(e.target.value)} placeholder="0.0" />
-                    </div>
+                  <div className="form-group">
+                    <label>Date</label>
+                    <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label>Weight (kg)</label>
+                    <input type="number" step="0.1" value={weightInput} onChange={e => setWeightInput(e.target.value)} placeholder="0.0" />
                   </div>
                   
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
