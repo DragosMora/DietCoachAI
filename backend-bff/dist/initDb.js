@@ -8,7 +8,7 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const db_1 = __importDefault(require("./db"));
 async function initializeDatabase() {
-    const schemaPath = path_1.default.join(__dirname, 'schema.sql');
+    const schemaPath = path_1.default.join(__dirname, '../src/schema.sql');
     try {
         const schemaSql = fs_1.default.readFileSync(schemaPath, 'utf8');
         let retries = 5;

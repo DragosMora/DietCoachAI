@@ -1,6 +1,6 @@
 import { db, type UserProfile } from './db';
 
-const API_BASE_URL = 'http://192.168.1.136:3001/api';
+const API_BASE_URL = 'https://dietcoach-bff.onrender.com/api';
 
 /**
  * Sync local data with the BFF server
