@@ -660,9 +660,9 @@ export default function App() {
         const config = { 
           fps: 15, // Higher frame rate for scanning speed
           qrbox: (width: number, height: number) => {
-            // A wide and thin scanning area is optimal for 1D barcodes
+            // A wide scanning area optimized for barcodes, slightly taller on the y-axis
             const boxWidth = Math.floor(width * 0.85);
-            const boxHeight = Math.floor(height * 0.35);
+            const boxHeight = Math.floor(height * 0.45);
             return {
               width: boxWidth,
               height: boxHeight
