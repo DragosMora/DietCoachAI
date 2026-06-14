@@ -80,6 +80,20 @@ input:focus, select:focus { border-color: var(--border-strong); outline: none; }
 input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 select option { background-color: var(--bg-panel); }
 
+input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-height: 2.875rem; /* Ensures identical height matching other text inputs */
+}
+input[type="date"]::-webkit-date-and-time-value {
+    min-height: 1.25em;
+    text-align: left;
+}
+
 
 /* Buttons */
 .primary-btn {
