@@ -565,7 +565,9 @@ export default function App() {
           const errData = await res.json().catch(() => null);
           let errorMsg = 'AI service error';
           if (errData) {
-            if (errData.details) {
+            if (errData.detail) {
+              errorMsg = errData.detail;
+            } else if (errData.details) {
               try {
                 const parsedDetails = JSON.parse(errData.details);
                 errorMsg = parsedDetails.detail || errData.details;
