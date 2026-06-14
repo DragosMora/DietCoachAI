@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type LocalMeal, type UserProfile, type LocalWeightLog } from './db';
 import { syncOfflineData } from './sync';
 import { localFoodDB, type FoodItem } from './localFoodDB';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const API_BASE_URL = 'https://dietcoach-bff.onrender.com/api';
@@ -68,6 +68,7 @@ export default function App() {
   // ── Modal Visibility ──
   const [showFoodSearch, setShowFoodSearch] = useState(false);
   const [showAmountModal, setShowAmountModal] = useState(false);
+  const [amountFoodName, setAmountFoodName] = useState('');
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [showAIVision, setShowAIVision] = useState(false);
   const [showMealOptions, setShowMealOptions] = useState(false);
@@ -266,6 +267,7 @@ export default function App() {
 
   function openAmountModal(food: FoodItem, meal: string) {
     setStagedFood(food);
+    setAmountFoodName(food.name);
     setAmountGrams(100);
     setAmountMeal(meal);
     setShowFoodSearch(false);
@@ -276,7 +278,7 @@ export default function App() {
     if (!stagedFood || amountGrams <= 0) return;
     const mult = amountGrams / 100;
     await db.meals.add({
-      name: stagedFood.name,
+      name: amountFoodName.trim() || stagedFood.name,
       category: amountMeal,
       calories: parseFloat((stagedFood.cals * mult).toFixed(1)),
       protein: parseFloat((stagedFood.p * mult).toFixed(1)),
@@ -603,6 +605,25 @@ export default function App() {
         }
         const html5QrCode = new Html5Qrcode("barcode-reader", {
           verbose: false,
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.AZTEC,
+            Html5QrcodeSupportedFormats.CODABAR,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.CODE_93,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.DATA_MATRIX,
+            Html5QrcodeSupportedFormats.MAXICODE,
+            Html5QrcodeSupportedFormats.ITF,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.PDF_417,
+            Html5QrcodeSupportedFormats.RSS_14,
+            Html5QrcodeSupportedFormats.RSS_EXPANDED,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.UPC_EAN_EXTENSION
+          ],
           experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
           }
@@ -1437,10 +1458,14 @@ export default function App() {
       {showAmountModal && stagedFood && (
         <div className="modal-overlay">
           <div className="modal-card panel">
-            <h3>{stagedFood.name}</h3>
+            <h3 style={{ marginBottom: '0.25rem' }}>Log Food</h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
               Base: 100g = {Math.round(stagedFood.cals)} kcal
             </p>
+            <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+              <label>Food Name</label>
+              <input type="text" value={amountFoodName} onChange={e => setAmountFoodName(e.target.value)} />
+            </div>
             <div className="form-group">
               <label>Amount Eaten (grams)</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

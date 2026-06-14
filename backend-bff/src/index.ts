@@ -250,8 +250,14 @@ app.get('/api/food/barcode/:barcode', async (req: Request, res: Response) => {
     const prod = data.product;
     const nutr = prod.nutriments || {};
 
+    const foodName = prod.product_name || 
+                     prod.product_name_en || 
+                     prod.product_name_ro || 
+                     prod.generic_name || 
+                     (prod.brands ? `${prod.brands} Product` : `Product ${barcode}`);
+
     const foodItem = {
-      name: prod.product_name || prod.generic_name || `Product ${barcode}`,
+      name: foodName,
       cals: parseFloat(nutr['energy-kcal_100g'] || nutr['energy_100g'] || 0),
       p: parseFloat(nutr['proteins_100g'] || 0),
       c: parseFloat(nutr['carbohydrates_100g'] || 0),
