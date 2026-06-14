@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 # Mock database of foods for fallback and local mock mode
 MOCK_FOOD_DATABASE = {
+    # --- Existing ---
     "chicken breast": {"calories": 165, "protein": 31.0, "carbs": 0.0, "fat": 3.6},
     "cooked rice": {"calories": 130, "protein": 2.7, "carbs": 28.0, "fat": 0.3},
     "olive oil": {"calories": 884, "protein": 0.0, "carbs": 0.0, "fat": 100.0},
@@ -15,7 +16,40 @@ MOCK_FOOD_DATABASE = {
     "protein shake": {"calories": 120, "protein": 24.0, "carbs": 3.0, "fat": 1.5},
     "salmon steak": {"calories": 208, "protein": 20.0, "carbs": 0.0, "fat": 13.0},
     "sweet potato": {"calories": 86, "protein": 1.6, "carbs": 20.0, "fat": 0.1},
-    "avocado": {"calories": 160, "protein": 2.0, "carbs": 8.5, "fat": 14.7}
+    "avocado": {"calories": 160, "protein": 2.0, "carbs": 8.5, "fat": 14.7},
+    
+    # --- Seeds & Nuts (High Density Fallbacks) ---
+    "sunflower seed": {"calories": 584, "protein": 20.8, "carbs": 20.0, "fat": 51.5},
+    "pumpkin seed": {"calories": 559, "protein": 30.0, "carbs": 11.0, "fat": 49.0},
+    "chia seed": {"calories": 486, "protein": 17.0, "carbs": 42.0, "fat": 31.0},
+    "almond": {"calories": 579, "protein": 21.0, "carbs": 22.0, "fat": 50.0},
+    "walnut": {"calories": 654, "protein": 15.0, "carbs": 14.0, "fat": 65.0},
+    "cashew": {"calories": 553, "protein": 18.0, "carbs": 30.0, "fat": 44.0},
+    "peanut": {"calories": 567, "protein": 26.0, "carbs": 16.0, "fat": 49.0},
+    "peanut butter": {"calories": 596, "protein": 25.0, "carbs": 12.0, "fat": 46.0},
+    "butter": {"calories": 717, "protein": 0.8, "carbs": 0.1, "fat": 81.0},
+    
+    # --- Fruits ---
+    "apple": {"calories": 52, "protein": 0.3, "carbs": 14.0, "fat": 0.2},
+    "kiwi": {"calories": 61, "protein": 1.1, "carbs": 15.0, "fat": 0.5},
+    "apricot": {"calories": 48, "protein": 1.4, "carbs": 11.0, "fat": 0.4},
+    "orange": {"calories": 47, "protein": 0.9, "carbs": 12.0, "fat": 0.1},
+    "strawberries": {"calories": 32, "protein": 0.7, "carbs": 8.0, "fat": 0.3},
+    "blueberries": {"calories": 57, "protein": 0.7, "carbs": 14.0, "fat": 0.3},
+    "mango": {"calories": 60, "protein": 0.8, "carbs": 15.0, "fat": 0.4},
+    
+    # --- Common Staples & Vegetables ---
+    "broccoli": {"calories": 34, "protein": 2.8, "carbs": 7.0, "fat": 0.4},
+    "spinach": {"calories": 23, "protein": 2.9, "carbs": 3.6, "fat": 0.4},
+    "tomato": {"calories": 18, "protein": 0.9, "carbs": 3.9, "fat": 0.2},
+    "cucumber": {"calories": 15, "protein": 0.7, "carbs": 3.6, "fat": 0.1},
+    "carrot": {"calories": 41, "protein": 0.9, "carbs": 10.0, "fat": 0.2},
+    "onion": {"calories": 40, "protein": 1.1, "carbs": 9.0, "fat": 0.1},
+    "potato": {"calories": 77, "protein": 2.0, "carbs": 17.0, "fat": 0.1},
+    "bread": {"calories": 265, "protein": 8.0, "carbs": 49.0, "fat": 3.0},
+    "pasta": {"calories": 350, "protein": 12.0, "carbs": 71.0, "fat": 1.5},
+    "rice": {"calories": 360, "protein": 7.0, "carbs": 79.0, "fat": 0.6},
+    "oats": {"calories": 389, "protein": 16.9, "carbs": 66.0, "fat": 6.9},
 }
 
 def query_usda_food(query: str, api_key: str = "DEMO_KEY") -> dict:
@@ -28,8 +62,13 @@ def query_usda_food(query: str, api_key: str = "DEMO_KEY") -> dict:
         return get_mock_nutrition(query)
         
     try:
-        url = f"https://api.nal.usda.gov/fdc/v1/foods/search?query={query}&pageSize=1&api_key={api_key}"
-        response = requests.get(url, timeout=5)
+        url = "https://api.nal.usda.gov/fdc/v1/foods/search"
+        params = {
+            "query": query,
+            "pageSize": 1,
+            "api_key": api_key
+        }
+        response = requests.get(url, params=params, timeout=5)
         if response.status_code == 200:
             data = response.json()
             if data.get("foods"):
@@ -60,10 +99,17 @@ def query_open_food_facts(query: str) -> dict:
     Queries Open Food Facts for a packaged product.
     """
     try:
-        url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={query}&search_simple=1&action=process&json=1&page_size=1"
+        url = "https://world.openfoodfacts.org/cgi/search.pl"
+        params = {
+            "search_terms": query,
+            "search_simple": 1,
+            "action": "process",
+            "json": 1,
+            "page_size": 1
+        }
         # Open Food Facts blocks generic/default User-Agents (like python-requests)
         headers = {"User-Agent": "DietCoachApp - WebApp - Version 2.0 - contact@dietcoach.ro"}
-        response = requests.get(url, headers=headers, timeout=5)
+        response = requests.get(url, params=params, headers=headers, timeout=5)
         if response.status_code == 200:
             data = response.json()
             if data.get("products"):

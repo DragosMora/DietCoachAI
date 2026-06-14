@@ -86,7 +86,7 @@ async def analyze_meal(
             if is_packaged:
                 nutr_100g = query_open_food_facts(name)
             else:
-                nutr_100g = query_usda_food(name, api_key="DEMO_KEY") # fallback to mock if there is no key
+                nutr_100g = query_usda_food(name, api_key=os.getenv("USDA_API_KEY", "DEMO_KEY"))
                 
             # Calculate values relative to estimated weight
             factor = weight / 100.0
