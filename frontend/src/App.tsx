@@ -1007,7 +1007,7 @@ export default function App() {
               <h2>{editingLogId ? 'Edit Metrics' : 'Log Metrics'}</h2>
               <form onSubmit={saveMetrics}>
                 <div className="form-grid" style={{ gap: '0.85rem' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div className="metrics-log-row">
                     <div className="form-group">
                       <label>Date</label>
                       <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} />
@@ -1245,7 +1245,7 @@ export default function App() {
                 </div>
 
                 <h3 className="section-title">New Daily Targets</h3>
-                <div className="macros-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+                <div className="macros-grid coach-macros-grid">
                   <div className="macro-card">
                     <div className="macro-header"><div className="dot" style={{ background: '#fafafa' }} /><span>Calories</span></div>
                     <div className="macro-grams">{coachResponse.new_targets?.calories}</div>
