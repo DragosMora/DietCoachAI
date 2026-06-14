@@ -196,10 +196,22 @@ export default function App() {
   }, [showAIVision]);
 
   useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = cameraStream;
+    }
+  }, [cameraStream]);
+
+  useEffect(() => {
     if (showProgressCamera) startProgressCamera();
     else stopProgressCamera();
     return () => stopProgressCamera();
   }, [showProgressCamera]);
+
+  useEffect(() => {
+    if (progressVideoRef.current) {
+      progressVideoRef.current.srcObject = progressCameraStream;
+    }
+  }, [progressCameraStream]);
 
   useEffect(() => {
     if (searchQuery.trim().length < 2) {
@@ -1577,8 +1589,8 @@ export default function App() {
             )}
 
             <div className="camera-container" style={{ marginBottom: '1rem' }}>
-              {cameraStream && !imagePreviewUrl && (
-                <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {!imagePreviewUrl && (
+                <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: cameraStream ? 'block' : 'none' }} />
               )}
               {imagePreviewUrl && (
                 <img src={imagePreviewUrl} alt="Meal capture" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -1831,9 +1843,7 @@ export default function App() {
             )}
 
             <div className="camera-container" style={{ width: '100%', height: '300px', background: '#000', borderRadius: 'var(--radius-md)', overflow: 'hidden', position: 'relative' }}>
-              {progressCameraStream && (
-                <video ref={progressVideoRef} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: progressFacingMode === 'user' ? 'scaleX(-1)' : 'none' }} />
-              )}
+              <video ref={progressVideoRef} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: progressCameraStream ? 'block' : 'none', transform: progressFacingMode === 'user' ? 'scaleX(-1)' : 'none' }} />
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
