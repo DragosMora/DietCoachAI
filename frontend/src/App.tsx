@@ -1221,7 +1221,7 @@ export default function App() {
                 <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5, background: 'var(--bg-main)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '0.75rem', marginBottom: '1rem' }}>
                   {coachResponse.coach_status === 'estimation' && (
                     <p style={{ margin: 0 }}>
-                      Calculated initial targets using BMR ({22 * (profile.current_weight || 80)} kcal) × activity level ({profile.activity_level || 1.3}). 
+                      Calculated initial targets using BMR ({(22 * (profile.current_weight || 80)).toFixed(1)} kcal) × activity level ({profile.activity_level || 1.3}). 
                       Adaptive mode will unlock when you have at least 7 days of weight logs (current: {coachResponse.weight_days_logged}/7) and 7 days of meals (current: {coachResponse.meal_days_logged}/7).
                     </p>
                   )}
