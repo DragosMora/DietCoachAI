@@ -101,6 +101,7 @@ export default function App() {
   const [cfC, setCfC] = useState('');
   const [cfF, setCfF] = useState('');
   const [cfFiber, setCfFiber] = useState('');
+  const [cfSatFat, setCfSatFat] = useState('');
   const [cfMeal, setCfMeal] = useState('Meal 1');
 
   // ── Metrics View ──
@@ -319,13 +320,13 @@ export default function App() {
       carbs: parseFloat(cfC) || 0,
       fat: parseFloat(cfF) || 0,
       fiber: parseFloat(cfFiber) || 0,
-      satfat: 0,
+      satfat: parseFloat(cfSatFat) || 0,
       amount: 1,
       date: dateStr,
       synced: 0,
     });
     setShowCustomModal(false);
-    setCfName(''); setCfCals(''); setCfP(''); setCfC(''); setCfF(''); setCfFiber('');
+    setCfName(''); setCfCals(''); setCfP(''); setCfC(''); setCfF(''); setCfFiber(''); setCfSatFat('');
     toast('Custom Food Added!');
     doSync();
   }
@@ -1547,7 +1548,8 @@ export default function App() {
               <div className="form-group"><label>Protein (g)</label><input type="number" value={cfP} onChange={e => setCfP(e.target.value)} /></div>
               <div className="form-group"><label>Carbs (g)</label><input type="number" value={cfC} onChange={e => setCfC(e.target.value)} /></div>
               <div className="form-group"><label>Fats (g)</label><input type="number" value={cfF} onChange={e => setCfF(e.target.value)} /></div>
-              <div className="form-group" style={{ gridColumn: '1/-1' }}><label>Fiber (g) — optional</label><input type="number" value={cfFiber} onChange={e => setCfFiber(e.target.value)} /></div>
+              <div className="form-group"><label>Fiber (g) — optional</label><input type="number" value={cfFiber} onChange={e => setCfFiber(e.target.value)} /></div>
+              <div className="form-group"><label>Sat. Fat (g) — optional</label><input type="number" value={cfSatFat} onChange={e => setCfSatFat(e.target.value)} /></div>
             </div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
               <button className="secondary-btn" style={{ flex: 1 }} onClick={() => setShowCustomModal(false)}>Cancel</button>

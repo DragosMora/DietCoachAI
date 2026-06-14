@@ -128,12 +128,23 @@ app.get('/api/meals', async (req, res) => {
 });
 app.post('/api/meals', async (req, res) => {
     try {
-        const { userId, name, category, calories, protein, carbs, fat, date } = req.body;
+        const { userId, name, category, calories, protein, carbs, fat, fiber, satfat, date } = req.body;
         const targetUserId = userId || 'usr_982341';
         const targetDate = date || new Date().toISOString().split('T')[0];
-        const result = await (0, db_1.query)(`INSERT INTO meals (user_id, name, category, calories, protein, carbs, fat, log_date)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING *`, [targetUserId, name, category || 'breakfast', calories, protein, carbs, fat, targetDate]);
+        const result = await (0, db_1.query)(`INSERT INTO meals (user_id, name, category, calories, protein, carbs, fat, fiber, satfat, log_date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING *`, [
+            targetUserId,
+            name,
+            category || 'breakfast',
+            calories,
+            protein,
+            carbs,
+            fat,
+            fiber || 0,
+            satfat || 0,
+            targetDate
+        ]);
         res.json(result.rows[0]);
     }
     catch (error) {

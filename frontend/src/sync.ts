@@ -57,6 +57,8 @@ export async function syncOfflineData(): Promise<{ success: boolean; syncedMeals
           protein: meal.protein,
           carbs: meal.carbs,
           fat: meal.fat,
+          fiber: meal.fiber,
+          satfat: meal.satfat,
           date: meal.date
         })
       });

@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS meals (
     protein NUMERIC(5, 1) NOT NULL,
     carbs NUMERIC(5, 1) NOT NULL,
     fat NUMERIC(5, 1) NOT NULL,
+    fiber NUMERIC(5, 1) DEFAULT 0,
+    satfat NUMERIC(5, 1) DEFAULT 0,
     log_date DATE NOT NULL DEFAULT CURRENT_DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -76,6 +78,10 @@ ALTER TABLE weight_logs ADD COLUMN IF NOT EXISTS arm NUMERIC(5, 2);
 ALTER TABLE weight_logs ADD COLUMN IF NOT EXISTS upper_body NUMERIC(5, 2);
 ALTER TABLE weight_logs ADD COLUMN IF NOT EXISTS leg NUMERIC(5, 2);
 ALTER TABLE weight_logs ADD COLUMN IF NOT EXISTS progress_pic TEXT;
+
+-- Migrations for meals
+ALTER TABLE meals ADD COLUMN IF NOT EXISTS fiber NUMERIC(5, 1) DEFAULT 0;
+ALTER TABLE meals ADD COLUMN IF NOT EXISTS satfat NUMERIC(5, 1) DEFAULT 0;
 
 -- Insert default test user (if not exists)
 INSERT INTO users (id, name, email, current_weight, target_weight, height, gender, goal, calorie_target, protein_target, carbs_target, fat_target, fiber_target, satfat_target, lift_weights, activity_level)
