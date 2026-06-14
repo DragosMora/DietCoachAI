@@ -91,9 +91,6 @@ export default function App() {
   const [stagedFood, setStagedFood] = useState<FoodItem | null>(null);
   const [amountGrams, setAmountGrams] = useState<number>(100);
   const [amountMeal, setAmountMeal] = useState('Meal 1');
-  const [zoomSupported, setZoomSupported] = useState(false);
-  const [currentZoom, setCurrentZoom] = useState(1);
-  const [zoomCapabilities, setZoomCapabilities] = useState<{ min: number; max: number; step: number } | null>(null);
 
   // ── Custom Food Form ──
   const [cfName, setCfName] = useState('');
@@ -685,24 +682,6 @@ export default function App() {
           }
         );
 
-        // Query running track capabilities for zoom support after scanner start
-        try {
-          const capabilities = html5QrCode.getRunningTrackCapabilities() as any;
-          if (capabilities.zoom) {
-            setZoomSupported(true);
-            setZoomCapabilities({
-              min: capabilities.zoom.min || 1,
-              max: capabilities.zoom.max || 5,
-              step: capabilities.zoom.step || 0.1
-            });
-            setCurrentZoom(html5QrCode.getRunningTrackSettings().zoom || 1);
-          } else {
-            setZoomSupported(false);
-          }
-        } catch (e) {
-          console.warn("Could not retrieve zoom capabilities:", e);
-          setZoomSupported(false);
-        }
       } catch (err: any) {
         console.error("Error starting barcode scanner:", err);
         let msg = "Could not access camera. Please ensure camera permissions are granted.";
@@ -725,21 +704,6 @@ export default function App() {
     }
     html5QrcodeRef.current = null;
     setIsScanningBarcode(false);
-    setZoomSupported(false);
-    setZoomCapabilities(null);
-    setCurrentZoom(1);
-  }
-
-  async function handleZoomChange(zoomValue: number) {
-    if (!html5QrcodeRef.current || !html5QrcodeRef.current.isScanning) return;
-    try {
-      await html5QrcodeRef.current.applyVideoConstraints({
-        advanced: [{ zoom: zoomValue }]
-      } as any);
-      setCurrentZoom(zoomValue);
-    } catch (err) {
-      console.error("Failed to apply camera zoom:", err);
-    }
   }
 
   async function handleBarcodeDetected(barcode: string) {
@@ -1843,76 +1807,9 @@ export default function App() {
               )}
             </div>
 
-            {isScanningBarcode && zoomSupported && zoomCapabilities && (
-              <div style={{ width: '100%', marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                  <span>Camera Zoom</span>
-                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{currentZoom.toFixed(1)}x</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <button 
-                    className="secondary-btn" 
-                    style={{ padding: '0.25rem 0.5rem', minWidth: '32px', height: '32px', borderRadius: 'var(--radius-sm)' }}
-                    onClick={() => {
-                      const nextZoom = Math.max(zoomCapabilities.min, currentZoom - 0.5);
-                      handleZoomChange(nextZoom);
-                    }}
-                    disabled={currentZoom <= zoomCapabilities.min}
-                  >
-                    -
-                  </button>
-                  <input 
-                    type="range" 
-                    min={zoomCapabilities.min} 
-                    max={zoomCapabilities.max} 
-                    step={zoomCapabilities.step} 
-                    value={currentZoom} 
-                    onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
-                    style={{ flex: 1, accentColor: 'var(--primary-color)', height: '6px', borderRadius: '3px', outline: 'none' }}
-                  />
-                  <button 
-                    className="secondary-btn" 
-                    style={{ padding: '0.25rem 0.5rem', minWidth: '32px', height: '32px', borderRadius: 'var(--radius-sm)' }}
-                    onClick={() => {
-                      const nextZoom = Math.min(zoomCapabilities.max, currentZoom + 0.5);
-                      handleZoomChange(nextZoom);
-                    }}
-                    disabled={currentZoom >= zoomCapabilities.max}
-                  >
-                    +
-                  </button>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-                  {[1, 2, 3].map(factor => (
-                    factor >= zoomCapabilities.min && factor <= zoomCapabilities.max && (
-                      <button
-                        key={factor}
-                        className={currentZoom === factor ? "primary-btn" : "secondary-btn"}
-                        style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', height: '28px', borderRadius: 'var(--radius-sm)' }}
-                        onClick={() => handleZoomChange(factor)}
-                      >
-                        {factor}x
-                      </button>
-                    )
-                  ))}
-                </div>
-              </div>
-            )}
-
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.75rem', textAlign: 'center', lineHeight: 1.5, marginBottom: '0.5rem' }}>
               Place the barcode inside the camera frame. Works best with EAN-13 / UPC barcodes.
             </p>
-            <div style={{ marginTop: '0.5rem', width: '100%', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '0.4rem', textAlign: 'left' }}>
-                💡 Tips for Challenging Barcodes:
-              </span>
-              <ul style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', paddingLeft: '1.2rem', lineHeight: 1.6, margin: 0, textAlign: 'left' }}>
-                <li><strong>Flatten wrinkles:</strong> Stretch wrappers (like chips/candy bags) flat with your fingers to align the barcode lines.</li>
-                <li><strong>Avoid glare:</strong> Tilt the product slightly to remove bright overhead light reflections on shiny plastic or tin cans.</li>
-                <li><strong>Curved surfaces (Cans/Bars):</strong> Hold the phone 15-20cm away (to let the camera focus) instead of getting too close, which warps the barcode.</li>
-                <li><strong>Intersections:</strong> Center the scanner on clean areas of the barcode (avoid parts covered by graphic icons).</li>
-              </ul>
-            </div>
           </div>
         </div>
       )}
