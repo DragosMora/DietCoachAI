@@ -102,9 +102,16 @@ def search_external_foods(query: str, api_key: str = "DEMO_KEY") -> list:
     
     # 1. Open Food Facts search (packaged products)
     try:
-        url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={query}&search_simple=1&action=process&json=1&page_size=15"
+        url = "https://world.openfoodfacts.org/cgi/search.pl"
+        params = {
+            "search_terms": query,
+            "search_simple": 1,
+            "action": "process",
+            "json": 1,
+            "page_size": 15
+        }
         headers = {"User-Agent": "DietCoachApp - WebApp - Version 2.0 - contact@dietcoach.ro"}
-        response = requests.get(url, headers=headers, timeout=5)
+        response = requests.get(url, params=params, headers=headers, timeout=5)
         if response.status_code == 200:
             data = response.json()
             for p in data.get("products", []):
@@ -125,8 +132,13 @@ def search_external_foods(query: str, api_key: str = "DEMO_KEY") -> list:
 
     # 2. USDA search (raw ingredients)
     try:
-        url = f"https://api.nal.usda.gov/fdc/v1/foods/search?query={query}&pageSize=15&api_key={api_key}"
-        response = requests.get(url, timeout=5)
+        url = "https://api.nal.usda.gov/fdc/v1/foods/search"
+        params = {
+            "query": query,
+            "pageSize": 15,
+            "api_key": api_key
+        }
+        response = requests.get(url, params=params, timeout=5)
         if response.status_code == 200:
             data = response.json()
             for f in data.get("foods", []):
