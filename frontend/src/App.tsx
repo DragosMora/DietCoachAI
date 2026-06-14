@@ -223,25 +223,32 @@ export default function App() {
     }
     setIsSearching(true);
     const timer = setTimeout(async () => {
+      const localMatches = localFoodDB.filter(f =>
+        f.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
       try {
         const res = await fetch(`${API_BASE_URL}/food/search?query=${encodeURIComponent(searchQuery)}`);
         if (res.ok) {
           const data = await res.json();
           if (data && data.length > 0) {
-            setSearchResults(data);
+            const seenNames = new Set(localMatches.map(m => m.name.toLowerCase()));
+            const filteredApiData = data.filter((item: FoodItem) => {
+              const nameLower = item.name.toLowerCase();
+              if (seenNames.has(nameLower)) return false;
+              seenNames.add(nameLower);
+              return true;
+            });
+            setSearchResults([...localMatches, ...filteredApiData].slice(0, 40));
             setIsSearching(false);
             return;
           }
         }
       } catch (err) {
-        console.error('Error searching live foods, falling back to local database:', err);
+        console.error('Error searching live foods, merging with local database:', err);
       }
 
-      // Fallback to local offline database if API errors or returns 0 results
-      const localMatches = localFoodDB.filter(f =>
-        f.name.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 20);
-      setSearchResults(localMatches);
+      setSearchResults(localMatches.slice(0, 40));
       setIsSearching(false);
     }, 400);
     return () => clearTimeout(timer);
