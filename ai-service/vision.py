@@ -111,7 +111,7 @@ def analyze_image_llm(image_bytes: bytes, api_key: str) -> dict:
                         },
                         {
                             "type": "image_url",
-                            "url": {
+                            "image_url": {
                                 "url": f"data:image/jpeg;base64,{base64_image}"
                             }
                         }
