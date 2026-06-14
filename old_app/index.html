@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DietCoach</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- PWA Setup -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#09090b">
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Chart.js Cache target -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    
+    <!-- Toast Notification System -->
+    <div id="toast" class="toast hidden">Alert Example</div>
+
+    <!-- MAIN APP VIEWS CONTAINER -->
+    <div class="app-views-wrapper">
+        
+        <!-- HEADER -->
+        <header class="app-header">
+            <h1>Diet<span>Coach</span></h1>
+            <p id="header-subtitle">Diet & Body Composition Wizard</p>
+        </header>
+
+
+        <!-- ==============================================
+             CALCULATOR MODAL (WIZARD)
+             ============================================== -->
+        <div id="modal-calculator" class="modal-overlay hidden">
+            <div class="modal-card" style="width:100%; height:100%; border-radius:0; background:var(--bg-main); overflow-y:auto; display:flex; flex-direction:column; padding:0;">
+                <div class="modal-header flex-between" style="position: sticky; top: 0; background: var(--bg-main); z-index: 10; padding: 1rem; border-bottom: 1px solid var(--border-subtle);">
+                    <h2 style="font-size: 1.2rem; margin:0;">DietCoach Setup</h2>
+                    <span class="material-icons" id="btn-close-calc" style="cursor:pointer; color:var(--text-secondary);">close</span>
+                </div>
+            <div class="view-container" style="padding: 1rem 1rem 3rem 1rem;">
+            
+                <!-- Progress Bar -->
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+
+                <form id="wizard-form" class="panel wizard-panel">
+                    
+                    <!-- STEP 1: Baseline Stats -->
+                    <div class="wizard-step active" id="step-1">
+                        <div class="step-header">
+                            <h2>Step 1: Baseline Stats</h2>
+                            <p>Enter your current stats and activity level.</p>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group toggle-group" style="grid-column: 1 / -1;">
+                                <span class="toggle-label" id="label-metric">Metric (kg)</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="unit-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="toggle-label inactive" id="label-imperial">Imperial (lbs)</span>
+                            </div>
+
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="weight" id="weight-label">Weight (kg)</label>
+                                <input type="number" inputmode="decimal" id="weight" name="weight" min="20" max="300" step="0.1" placeholder="e.g. 80" required>
+                            </div>
+
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="activity">Activity Level</label>
+                                <div class="select-wrapper">
+                                    <select id="activity" name="activity" required>
+                                        <option value="" disabled selected>Select activity level...</option>
+                                        <option value="1.4">Sedentary + 3-6 days of lifting</option>
+                                        <option value="1.65">Lightly Active + 3-6 days of lifting</option>
+                                        <option value="1.8">Active + 3-6 days of lifting</option>
+                                        <option value="2.0">Very Active + 3-6 days of lifting</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Goal Setup -->
+                    <div class="wizard-step hidden" id="step-2">
+                        <div class="step-header">
+                            <h2>Step 2: Objective</h2>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label>Primary Goal</label>
+                                <div class="radio-group">
+                                    <input type="radio" id="goal-cut" name="goal" value="cut">
+                                    <label for="goal-cut" class="radio-btn">Cut</label>
+                                    <input type="radio" id="goal-maintain" name="goal" value="maintain" checked>
+                                    <label for="goal-maintain" class="radio-btn">Maintain</label>
+                                    <input type="radio" id="goal-bulk" name="goal" value="bulk">
+                                    <label for="goal-bulk" class="radio-btn">Bulk</label>
+                                </div>
+                            </div>
+                            <!-- Conditional Details -->
+                            <div class="form-group hidden" id="cut-details" style="grid-column: 1 / -1;">
+                                <label for="cut-rate">Weekly Weight Loss Rate (% of bodyweight)</label>
+                                <div style="display: flex; gap: 1rem; align-items: center;">
+                                    <input type="range" id="cut-rate" min="0.3" max="1.0" step="0.1" value="0.7" style="flex: 1;">
+                                    <span id="cut-rate-display" style="font-weight: 600; width: 40px;">0.7%</span>
+                                </div>
+                            </div>
+                            <div class="form-group hidden" id="bulk-details" style="grid-column: 1 / -1;">
+                                <label for="bulk-experience">Training Experience Level</label>
+                                <div class="select-wrapper">
+                                    <select id="bulk-experience">
+                                        <option value="1.5">Beginner (1.5% gain/month)</option>
+                                        <option value="1.0">Intermediate (1.0% gain/month)</option>
+                                        <option value="0.5">Advanced (0.5% gain/month)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Body Composition -->
+                    <div class="wizard-step hidden" id="step-3">
+                        <div class="step-header">
+                            <h2>Step 3: Body Comp</h2>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="body-fat">Body Fat Percentage (%)</label>
+                                <input type="number" inputmode="decimal" id="body-fat" name="bodyfat" min="3" max="60" step="0.1" placeholder="e.g. 15" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wizard Navigation -->
+                    <div class="wizard-nav">
+                        <button type="button" id="btn-back" class="secondary-btn hidden">Back</button>
+                        <button type="button" id="btn-next" class="primary-btn">Next Step</button>
+                        <button type="button" id="btn-calculate" class="primary-btn hidden">Calculate</button>
+                    </div>
+                </form>
+
+                <!-- STEP 4: RESULTS DASHBOARD -->
+                <section class="panel results-panel hidden" id="results-panel">
+                    <div class="results-header">
+                        <h2>Your Advanced Plan</h2>
+                        <div class="tags-row">
+                            <div class="bmr-chip">TDEE: <span id="tdee-display">--</span></div>
+                            <div class="bmr-chip">LBM: <span id="lbm-display">--</span> kg</div>
+                        </div>
+                    </div>
+
+                    <div class="main-cal-display">
+                        <div class="cal-content">
+                            <span class="cal-label" id="target-label">Target Calories</span>
+                            <span class="cal-number" id="target-calories">--</span>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title">Daily Minimums</h3>
+                    <div class="macros-grid">
+                        <div class="macro-card protein">
+                            <div class="macro-header"><div class="dot"></div><span>Protein</span></div>
+                            <div class="macro-grams" id="res-protein">--</div>
+                        </div>
+                        <div class="macro-card carbs">
+                            <div class="macro-header"><div class="dot"></div><span>Carbs</span></div>
+                            <div class="macro-grams" id="res-carbs">--</div>
+                        </div>
+                        <div class="macro-card fats">
+                            <div class="macro-header"><div class="dot"></div><span>Fats</span></div>
+                            <div class="macro-grams" id="res-fats">40-60g</div>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title" style="margin-top: 1rem;">Health Targets</h3>
+                    <div class="micros-grid">
+                        <div class="micro-row"><span>Fiber (min)</span><strong id="res-fiber">--</strong></div>
+                        <div class="micro-row"><span>Fruits (min)</span><strong id="res-fruits">--</strong></div>
+                        <div class="micro-row"><span>Vegetables (min)</span><strong id="res-veg">--</strong></div>
+                        <div class="divider"></div>
+                        <div class="micro-row warn"><span>Sat Fat (max)</span><strong id="res-satfat">--</strong></div>
+                        <div class="micro-row warn"><span>Added Sugar (max)</span><strong id="res-sugar">--</strong></div>
+                        <div class="divider" style="margin-top:1rem;"></div>
+                        <button type="button" id="btn-save-targets" class="primary-btn" style="width:100%; margin-top:1rem;">Add to Diary</button>
+                    </section>
+
+                <p class="bottom-disclaimer">Complete all steps and press Calculate to see your personalised targets.</p>
+
+            </div>
+        </div>
+        </div>
+
+        <!-- ==============================================
+             APP VIEW 1: DIARY & FOOD TRACKING (DEFAULT)
+             ============================================== -->
+        <main id="view-diary" class="app-view active-view">
+            <div class="view-container">
+                
+                <div class="date-header panel">
+                    <button class="icon-btn" id="diary-prev-day"><span class="material-icons">chevron_left</span></button>
+                    <h2 id="diary-current-date">Today</h2>
+                    <button class="icon-btn" id="diary-next-day"><span class="material-icons">chevron_right</span></button>
+                </div>
+
+                <!-- Summary Panel -->
+                <div class="panel summary-panel">
+                    <h3>Calories</h3>
+                    <div class="cal-summary">
+                        <span id="diary-cal-budget" class="cal-number text-small">0</span>
+                        <span class="cal-label">-</span>
+                        <span id="diary-cal-consumed" class="cal-number text-small">0</span>
+                        <span class="cal-label">=</span>
+                        <span id="diary-cal-remaining" class="cal-number">0</span>
+                    </div>
+
+                    <div class="macros-progress">
+                        <div class="macro-prog">
+                            <div class="flex-between"><span>Protein min.</span><span id="prog-p">0 / 0g</span></div>
+                            <div class="prog-bar bg-p"><div class="prog-fill" id="fill-p" style="width: 0%"></div></div>
+                        </div>
+                        <div class="macro-prog">
+                            <div class="flex-between"><span>Carbs min.</span><span id="prog-c">0 / 0g</span></div>
+                            <div class="prog-bar bg-c"><div class="prog-fill" id="fill-c" style="width: 0%"></div></div>
+                        </div>
+                        <div class="macro-prog">
+                            <div class="flex-between"><span>Fats min.</span><span id="prog-f">0 / 50g</span></div>
+                            <div class="prog-bar bg-f"><div class="prog-fill" id="fill-f" style="width: 0%"></div></div>
+                        </div>
+                        <div class="macro-prog">
+                            <div class="flex-between"><span>Fiber min.</span><span id="prog-fiber">0 / 0g</span></div>
+                            <div class="prog-bar" style="background:var(--bg-main); border:1px solid var(--border-subtle);"><div class="prog-fill" id="fill-fiber" style="width: 0%; background:#34d399;"></div></div>
+                        </div>
+                        <div class="macro-prog">
+                            <div class="flex-between"><span>Sat. Fat max.</span><span id="prog-satfat">0 / 0g</span></div>
+                            <div class="prog-bar" style="background:var(--bg-main); border:1px solid var(--border-subtle);"><div class="prog-fill" id="fill-satfat" style="width: 0%; background:#a855f7;"></div></div>
+                        </div>
+                        <div class="macro-row" style="margin-top: 0.5rem; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.2rem;">
+                            <span>Fruits min.</span><strong id="diary-fruits-rem">--</strong>
+                        </div>
+                        <div class="macro-row" style="margin-top: 0.4rem; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.2rem;">
+                            <span>Veggies min.</span><strong id="diary-veg-rem">--</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Intakes Box -->
+                <div class="panel">
+                    <div class="flex-between" id="logged-foods-header">
+                        <h3>Logged Foods</h3>
+                    </div>
+                    <div id="meal-groups-container">
+                        <!-- Meals like "Meal 1", "Meal 2" will be rendered here dynamically -->
+                        <ul id="diary-food-list" class="food-log-list">
+                            <li class="empty-state">No foods logged today.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ==============================================
+             APP VIEW 3: WEIGHT GRAPHS & LOGS
+             ============================================== -->
+        <main id="view-weight" class="app-view hidden">
+            <div class="view-container">
+                
+                <div class="panel">
+                    <h2>Log Weight</h2>
+                    <p class="disclaimer weight-disclaimer">
+                        For accurate results, weigh in every morning, after you wake up, naked, after going to the toilet and before eating or drinking anything.
+                    </p>
+                    <div class="weight-input-group">
+                        <input type="number" inputmode="decimal" id="today-weight-input" step="0.1" placeholder="0.0">
+                        <span style="font-weight: 500; font-size:1.2rem;">kg</span>
+                        <button id="btn-log-weight" class="primary-btn" style="margin-left:auto;">Save</button>
+                    </div>
+                </div>
+
+                <!-- Chart Canvas -->
+                <div class="panel">
+                    <div class="chart-header flex-between">
+                        <h2>Weight Trends</h2>
+                        <span class="avg-bubble">Avg: <span id="graph-avg-val">--</span>kg</span>
+                    </div>
+                    
+                    <div class="goal-tabs" id="chart-tabs" style="margin: 1rem 0;">
+                        <button class="tab-btn active" data-range="7">7D</button>
+                        <button class="tab-btn" data-range="14">14D</button>
+                        <button class="tab-btn" data-range="30">30D</button>
+                        <button class="tab-btn" data-range="90">90D</button>
+                    </div>
+
+                    <div class="chart-wrapper">
+                        <canvas id="weight-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>Historical Log</h3>
+                    <ul id="historical-weight-list" class="food-log-list" style="margin-top: 1rem; max-height: 200px; overflow-y:auto;">
+                        <li class="empty-state">No past weigh-ins found.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- View 4: Settings -->
+        <section id="view-settings" class="app-view hidden">
+            <div class="view-container">
+                <div class="panel">
+                    <h2 class="section-title">User Profile</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="set-name" placeholder="Enter your name">
+                        </div>
+                        <div class="form-group">
+                            <label>Age</label>
+                            <input type="number" id="set-age" placeholder="e.g. 25">
+                        </div>
+                        <div class="form-group">
+                            <label>Sex</label>
+                            <select id="set-sex">
+                                <option value="">Select...</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Current Weight (kg)</label>
+                            <input type="number" id="set-weight" step="0.1" placeholder="e.g. 80.5">
+                        </div>
+                        <div class="form-group">
+                            <label>Body Fat %</label>
+                            <input type="number" id="set-bf-input" step="0.1" placeholder="e.g. 15.0">
+                        </div>
+                        <div class="micros-grid" style="grid-template-columns: 1fr 1fr; display: grid; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+                            <div class="micro-row" style="flex-direction: column; align-items: flex-start;">
+                                <span>LBM (Lean Mass)</span>
+                                <strong id="set-lbm">--</strong>
+                            </div>
+                            <div class="micro-row" style="flex-direction: column; align-items: flex-start;">
+                                <span>FM (Fat Mass)</span>
+                                <strong id="set-fm">--</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="section-title">App Configuration</h2>
+                    <div class="settings-options-list">
+
+                        <div class="settings-option-item" style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem;">
+                            <div class="flex-between">
+                                <div class="option-info">
+                                    <span class="material-icons">psychology</span>
+                                    <div>
+                                        <strong>Coach Mode</strong>
+                                        <p>Data-driven calorie adjustments</p>
+                                    </div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="set-coach-enabled">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="settings-option-item" id="btn-manual-targets" style="cursor: pointer;">
+                            <div class="flex-between">
+                                <div class="option-info">
+                                    <span class="material-icons">restaurant</span>
+                                    <div>
+                                        <strong>Daily Meals</strong>
+                                        <p id="set-meal-count-display">4 Meals</p>
+                                    </div>
+                                </div>
+                                <span class="material-icons">chevron_right</span>
+                            </div>
+                        </div>
+
+                        <div class="settings-option-item" id="btn-open-calc" style="cursor: pointer; border-top: 1px solid var(--border-subtle); padding-top: 1rem; margin-top: 1rem;">
+                            <div class="flex-between">
+                                <div class="option-info">
+                                    <span class="material-icons">calculate</span>
+                                    <div>
+                                        <strong>Repeat Coach Nutrition Targets</strong>
+                                        <p>Run the setup wizard again</p>
+                                    </div>
+                                </div>
+                                <span class="material-icons">chevron_right</span>
+                            </div>
+                        </div>
+
+                        <div class="settings-option-item" id="btn-open-nutrition-modal" style="cursor: pointer; border-top: 1px solid var(--border-subtle); padding-top: 1rem; margin-top: 1rem;">
+                            <div class="flex-between">
+                                <div class="option-info">
+                                    <span class="material-icons">tune</span>
+                                    <div>
+                                        <strong>Manual Nutrition Targets</strong>
+                                        <p>Modify goals for calories and macros</p>
+                                    </div>
+                                </div>
+                                <span class="material-icons">chevron_right</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="section-title">Notifications & Reminders</h2>
+                    <div class="form-grid">
+                        <div class="flex-between">
+                            <div>
+                                <h3 style="margin-bottom: 0.25rem;">Daily Reminders</h3>
+                                <p style="font-size: 0.8rem; color: var(--text-secondary);">Enable browser notifications for logging.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="set-notif-enabled">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div id="notif-settings-group" class="hidden" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+                            <div class="flex-between">
+                                <label>Weight Log Reminder</label>
+                                <input type="time" id="set-time-weight" style="width: auto;">
+                            </div>
+                            <div class="flex-between">
+                                <label>Food Log Reminder</label>
+                                <input type="time" id="set-time-food" style="width: auto;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="section-title">Data Management</h2>
+                    <div class="settings-options-list">
+                        <div class="settings-option-item" onclick="document.getElementById('file-import-excel').click()" style="cursor: pointer;">
+                            <div class="flex-between">
+                                <div class="option-info">
+                                    <span class="material-icons">upload_file</span>
+                                    <div>
+                                        <strong>Import from Excel</strong>
+                                        <p>Load history from .xlsx file</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="file" id="file-import-excel" accept=".xlsx" class="hidden">
+
+                        <div class="settings-option-item" id="btn-clear-overwrite" style="cursor: pointer; border-top: 1px solid var(--border-subtle); padding-top: 1rem; margin-top: 1rem;">
+                            <div class="flex-between">
+                                <div class="option-info">
+                                    <span class="material-icons">delete_sweep</span>
+                                    <div>
+                                        <strong>Clear Overwritten Data</strong>
+                                        <p>Remove all imported diary &amp; weight entries</p>
+                                    </div>
+                                </div>
+                                <span class="material-icons">chevron_right</span>
+                            </div>
+                        </div>
+
+                        <div class="settings-option-item" id="btn-erase-all" style="cursor: pointer; border-top: 1px solid var(--border-subtle); padding-top: 1rem; margin-top: 1rem;">
+                            <div class="flex-between">
+                                <div class="option-info">
+                                    <span class="material-icons" style="color: #f87171;">delete_forever</span>
+                                    <div>
+                                        <strong style="color: #f87171;">Erase All Account Data</strong>
+                                        <p>Remove all food, weight &amp; coach logs</p>
+                                    </div>
+                                </div>
+                                <span class="material-icons">chevron_right</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="app-version" style="text-align:center; padding-bottom: 2rem; font-size: 0.85rem; color: var(--text-secondary); opacity: 0.8; margin-top: 1rem;">DietCoach v1.2</p>
+        </section>
+
+        <!-- ==============================================
+             APP VIEW 4: COACH
+             ============================================== -->
+        <main id="view-coach" class="app-view hidden">
+            <div class="view-container">
+                <div class="panel">
+                    <div class="flex-between">
+                        <div>
+                            <h2 style="margin-bottom:0.1rem;">Coach</h2>
+                            <p style="font-size:0.8rem; color:var(--text-secondary);" id="coach-date-range">Analyzing past 14 days</p>
+                        </div>
+                        <span class="material-icons" style="font-size:2.5rem; opacity:0.35;">psychology</span>
+                    </div>
+                </div>
+                <div id="coach-content"></div>
+            </div>
+        </main>
+
+    </div><!-- End wrapper -->
+
+    <!-- ==============================================
+         BOTTOM TAB BAR NAVIGATION
+         ============================================== -->
+    <nav class="bottom-tab-bar">
+        <button class="tab-item active" data-target="view-diary">
+            <span class="material-icons">book</span>
+            <span class="tab-label">Diary</span>
+        </button>
+        <button class="tab-item" data-target="view-weight">
+            <span class="material-icons">show_chart</span>
+            <span class="tab-label">Weight</span>
+        </button>
+        <button class="tab-item" data-target="view-coach">
+            <span class="material-icons">psychology</span>
+            <span class="tab-label">Coach</span>
+        </button>
+        <button class="tab-item" data-target="view-settings">
+            <span class="material-icons">settings</span>
+            <span class="tab-label">Settings</span>
+        </button>
+    </nav>
+
+    <!-- Erase All Account Data Modal -->
+    <div id="modal-erase-all" class="modal-overlay hidden">
+        <div class="modal-card panel">
+            <div class="flex-between" style="margin-bottom: 1.5rem;">
+                <h3 style="margin:0; color:#f87171;">Erase All Data</h3>
+                <span class="material-icons" id="modal-erase-all-close" style="cursor:pointer; color:var(--text-secondary);">close</span>
+            </div>
+            <p style="color:var(--text-secondary); line-height:1.7; font-size:0.9rem; margin-bottom:0.75rem;">
+                This will permanently erase <strong style="color:var(--text-primary);">all</strong> food logs, weight logs, and Coach history. Your profile and nutrition targets will also be reset.
+            </p>
+            <p style="color:var(--text-secondary); font-size:0.85rem; line-height:1.5; border-top: 1px solid var(--border-subtle); padding-top:0.75rem;">
+                You will be taken through the Coach setup again to establish new targets.
+            </p>
+            <div style="display:flex; gap:1rem; margin-top:2rem;">
+                <button id="modal-erase-all-cancel" class="secondary-btn" style="flex:1;">Cancel</button>
+                <button id="modal-erase-all-confirm" class="primary-btn" style="flex:1; background:#f87171; border-color:#f87171;">Erase Everything</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Overwrite Confirm Modal -->
+    <!-- Coach Disabled Modal -->
+    <div id="modal-coach-disabled" class="modal-overlay hidden">
+        <div class="modal-card panel">
+            <div class="flex-between" style="margin-bottom: 1.5rem;">
+                <h3 style="margin:0;">Coach is Disabled</h3>
+                <span class="material-icons" id="modal-coach-disabled-close" style="cursor:pointer; color:var(--text-secondary);">close</span>
+            </div>
+            <p style="color:var(--text-secondary); line-height:1.7; font-size:0.9rem; margin-bottom:1.5rem;">
+                Coach is currently disabled. To enable coaching, go to <strong style="color:var(--text-primary);">Settings → App Configuration</strong> and turn on Coach Mode.
+            </p>
+            <button id="modal-coach-disabled-go-settings" class="primary-btn" style="width:100%;">Go to Settings</button>
+        </div>
+    </div>
+
+    <div id="modal-clear-overwrite" class="modal-overlay hidden">
+        <div class="modal-card panel">
+            <div class="flex-between" style="margin-bottom: 1.5rem;">
+                <h3 style="margin:0;">Clear Overwritten Data</h3>
+                <span class="material-icons" id="modal-clear-overwrite-close" style="cursor:pointer; color:var(--text-secondary);">close</span>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0.75rem;">
+                This will permanently remove all diary entries and weight data that were imported via Excel.
+            </p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; border-top: 1px solid var(--border-subtle); padding-top: 0.75rem;">
+                Any entries you added <strong style="color: var(--text-primary);">manually</strong> in the app will not be affected.
+            </p>
+            <div style="display:flex; gap:1rem; margin-top:2rem;">
+                <button id="modal-clear-overwrite-cancel" class="secondary-btn" style="flex:1;">Cancel</button>
+                <button id="modal-clear-overwrite-confirm" class="primary-btn" style="flex:1;">Clear Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Food Modal -->
+    <div id="modal-custom-food" class="modal-overlay hidden">
+        <div class="modal-card panel">
+            <h3>Add Custom Macros</h3>
+            <div class="form-group" style="margin-top: 1rem;">
+                <label>Food Name / Description</label>
+                <input type="text" id="modal-food-name" placeholder="e.g. My Protein Shake">
+            </div>
+            <div class="form-group" style="margin-top: 0.5rem;">
+                <label>Add to Meal</label>
+                <select id="modal-custom-meal-select" class="meal-select-dropdown">
+                    <!-- Options handled by JS based on user settings -->
+                </select>
+            </div>
+            <div class="form-grid" style="margin-top:0.5rem;">
+                <div class="form-group">
+                    <label>Calories</label>
+                    <input type="number" id="modal-cals" inputmode="decimal">
+                </div>
+                <div class="form-group">
+                    <label>Protein (g)</label>
+                    <input type="number" id="modal-p" inputmode="decimal">
+                </div>
+                <div class="form-group">
+                    <label>Carbs (g)</label>
+                    <input type="number" id="modal-c" inputmode="decimal">
+                </div>
+                <div class="form-group">
+                    <label>Fats (g)</label>
+                    <input type="number" id="modal-f" inputmode="decimal">
+                </div>
+                <div class="form-group">
+                    <label>Fiber (g)</label>
+                    <input type="number" id="modal-fiber" inputmode="decimal" placeholder="optional">
+                </div>
+            </div>
+            <div style="display:flex; gap:1rem; margin-top:2rem;">
+                <button id="modal-btn-cancel" class="secondary-btn" style="flex:1;">Cancel</button>
+                <button id="modal-btn-add" class="primary-btn" style="flex:1;">Add to Diary</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Search Grams Select Modal -->
+    <div id="modal-select-amount" class="modal-overlay hidden">
+        <div class="modal-card panel">
+            <h3 id="modal-amount-title">Chicken Breast</h3>
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:1rem;" id="modal-amount-meta">100g = 165kcal</p>
+            <div class="form-group">
+                <label>Amount Eaten (grams)</label>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <input type="number" id="modal-amount-g" inputmode="decimal" value="100" style="flex:1;">
+                    <span style="font-weight:600; font-size:1.1rem;">g</span>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 0.5rem;">
+                <label>Add to Meal</label>
+                <select id="modal-amount-meal-select" class="meal-select-dropdown">
+                    <!-- Options handled by JS -->
+                </select>
+            </div>
+            <div style="display:flex; gap:1rem; margin-top:2rem;">
+                <button id="modal-amount-cancel" class="secondary-btn" style="flex:1;">Cancel</button>
+                <button id="modal-amount-add" class="primary-btn" style="flex:1;">Log Food</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Weight Modal -->
+    <div id="modal-edit-weight" class="modal-overlay hidden">
+        <div class="modal-card panel">
+            <h3>Edit Weight Entry</h3>
+            <div class="form-group" style="margin-top: 1.5rem;">
+                <label>Date</label>
+                <input type="date" id="edit-weight-date">
+            </div>
+            <div class="form-group" style="margin-top: 1rem;">
+                <label>Weight (kg)</label>
+                <input type="number" id="edit-weight-val" step="0.1">
+            </div>
+            <div style="display:flex; gap:1rem; margin-top:2rem;">
+                <button id="modal-edit-weight-cancel" class="secondary-btn" style="flex:1;">Cancel</button>
+                <button id="modal-edit-weight-save" class="primary-btn" style="flex:1;">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meal Count Modal -->
+    <div id="modal-settings-meals" class="modal-overlay hidden">
+        <div class="modal-card panel">
+            <h3>Number of Daily Meals</h3>
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:1.5rem;">Choose how many meal sections show in your Diary.</p>
+            <div class="form-group">
+                <label>Daily Meal Count</label>
+                <select id="set-meal-count">
+                    <option value="2">2 Meals</option>
+                    <option value="3">3 Meals</option>
+                    <option value="4">4 Meals</option>
+                    <option value="5">5 Meals</option>
+                    <option value="6">6 Meals</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:1rem; margin-top:2rem;">
+                <button id="modal-meals-cancel" class="secondary-btn" style="flex:1;">Cancel</button>
+                <button id="modal-meals-save" class="primary-btn" style="flex:1;">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Nutrition Modal -->
+    <div id="modal-settings-nutrition" class="modal-overlay hidden">
+        <div class="modal-card panel" style="max-height: 85vh; overflow-y: auto;">
+            <h3>Manual Nutrition Targets</h3>
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:1.5rem;">Override automated calculator results.</p>
+            
+            <div class="form-grid" style="gap: 1rem;">
+                <div class="form-group">
+                    <label>Daily Calories</label>
+                    <input type="number" id="set-target-cal" inputmode="decimal">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label>Protein (g)</label>
+                        <input type="number" id="set-target-p" inputmode="decimal">
+                    </div>
+                    <div class="form-group">
+                        <label>Carbs (g)</label>
+                        <input type="number" id="set-target-c" inputmode="decimal">
+                    </div>
+                    <div class="form-group">
+                        <label>Fats (g)</label>
+                        <input type="number" id="set-target-f" inputmode="decimal">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label>Fiber min (g)</label>
+                        <input type="number" id="set-target-fiber" inputmode="decimal">
+                    </div>
+                    <div class="form-group">
+                        <label>Sat. Fat max (g)</label>
+                        <input type="number" id="set-target-satfat" inputmode="decimal">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label>Fruits min (g)</label>
+                        <input type="number" id="set-target-fruits" inputmode="decimal">
+                    </div>
+                    <div class="form-group">
+                        <label>Veggies min (g)</label>
+                        <input type="number" id="set-target-veg" inputmode="decimal">
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:1rem; margin-top:2rem;">
+                <button id="modal-nutrition-cancel" class="secondary-btn" style="flex:1;">Cancel</button>
+                <button id="modal-nutrition-save" class="primary-btn" style="flex:1;">Apply Targets</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Food Modal -->
+    <div id="modal-add-food" class="modal-overlay hidden">
+        <div class="modal-card panel" style="max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="flex-between" style="margin-bottom: 1rem; flex-shrink: 0;">
+                <h3 style="margin:0;">Search Food</h3>
+                <span class="material-icons" id="modal-add-close" style="cursor:pointer; color:var(--text-secondary);">close</span>
+            </div>
+            
+            <p class="disclaimer hidden" id="offline-warning" style="margin-bottom: 0.5rem; color: #f87171;">You are offline.</p>
+            
+            <div class="search-input-group" style="flex-shrink: 0;">
+                <span class="material-icons" style="position: absolute; left: 1rem; color: var(--text-secondary);">search</span>
+                <input type="text" id="food-search" placeholder="Search Local DB..." style="width: 100%;">
+                <div id="search-spinner" class="spinner hidden"></div>
+            </div>
+            
+            <button id="btn-manual-add" class="secondary-btn" style="width:100%; margin-top:0.5rem; flex-shrink: 0;">+ Quick Add Custom Food</button>
+            
+            <div style="flex-grow: 1; overflow-y: auto; margin-top: 1rem;">
+                <ul id="search-results-list" class="results-list hidden" style="margin-top: 0;">
+                    <!-- Search results render here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meal Options Modal (Copy/Paste/Clear) -->
+    <div id="modal-meal-options" class="modal-overlay hidden">
+        <div class="modal-card panel">
+            <div class="flex-between" style="margin-bottom: 1.5rem;">
+                <h3 id="modal-meal-options-title" style="margin:0;">Meal Options</h3>
+                <span class="material-icons" id="modal-meal-options-close" style="cursor:pointer; color:var(--text-secondary);">close</span>
+            </div>
+            
+            <div class="form-grid" style="gap: 0.75rem;">
+                <button id="btn-meal-opt-copy" class="secondary-btn" style="width:100%; border-color: var(--border-subtle); color: var(--text-primary); text-align: left; padding-left: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+                    <span class="material-icons" style="font-size: 1.2rem;">content_copy</span> Copy Meal
+                </button>
+                <button id="btn-meal-opt-paste" class="secondary-btn hidden" style="width:100%; border-color: var(--border-subtle); color: var(--text-primary); text-align: left; padding-left: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+                    <span class="material-icons" style="font-size: 1.2rem;">content_paste</span> Paste Copied Meal
+                </button>
+                <div class="divider" style="margin: 0.25rem 0;"></div>
+                <button id="btn-meal-opt-clear" class="secondary-btn" style="width:100%; border-color: var(--border-subtle); color: var(--text-primary); text-align: left; padding-left: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+                    <span class="material-icons" style="font-size: 1.2rem;">delete_outline</span> Clear Meal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coach Check-in Modal -->
+    <div id="modal-coach-checkin" class="modal-overlay hidden">
+        <div class="modal-card panel" style="max-height: 90vh; overflow-y: auto;">
+            <div class="flex-between" style="margin-bottom: 1.5rem;">
+                <h3 style="margin:0;">Weekly Check-in</h3>
+                <span class="material-icons" id="modal-coach-checkin-close" style="cursor:pointer; color:var(--text-secondary);">close</span>
+            </div>
+
+            <!-- Step 1: Training -->
+            <div id="checkin-step-1" class="checkin-step">
+                <h4 style="margin-bottom: 1rem; color: var(--brand-primary);">1. Training</h4>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display:block; font-size: 0.9rem; margin-bottom: 0.5rem;">Intensity Adherence (RIR targets)</label>
+                    <input type="range" id="checkin-intensity" min="0" max="100" value="100" style="width:100%;">
+                    <div class="flex-between" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        <span>0%</span><strong id="val-intensity">100%</strong><span>100%</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display:block; font-size: 0.9rem; margin-bottom: 0.5rem;">Form Correctness (1-10)</label>
+                    <input type="range" id="checkin-form" min="1" max="10" value="10" style="width:100%;">
+                    <div class="flex-between" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        <span>1</span><strong id="val-form">10</strong><span>10</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display:block; font-size: 0.9rem; margin-bottom: 0.5rem;">Workout Adherence (Logs vs Prescribed)</label>
+                    <input type="range" id="checkin-train-adh" min="0" max="100" value="100" style="width:100%;">
+                    <div class="flex-between" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        <span>0%</span><strong id="val-train-adh">100%</strong><span>100%</span>
+                    </div>
+                </div>
+
+                <button id="btn-checkin-next-1" class="primary-btn" style="width:100%;">Next: Consistency</button>
+            </div>
+
+            <!-- Step 2: Consistency -->
+            <div id="checkin-step-2" class="checkin-step hidden">
+                <h4 style="margin-bottom: 1rem; color: var(--brand-primary);">2. Consistency</h4>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display:block; font-size: 0.9rem; margin-bottom: 0.5rem;">Diet Adherence (Calories/Macros)</label>
+                    <input type="range" id="checkin-diet-adh" min="50" max="150" value="100" style="width:100%;">
+                    <div class="flex-between" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        <span>50%</span><strong id="val-diet-adh">100%</strong><span>150%</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display:block; font-size: 0.9rem; margin-bottom: 0.5rem;">Meal Timing (Prescribed Meals)</label>
+                    <input type="range" id="checkin-meal-adh" min="0" max="100" value="100" style="width:100%;">
+                    <div class="flex-between" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        <span>0%</span><strong id="val-meal-adh">100%</strong><span>100%</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display:block; font-size: 0.9rem; margin-bottom: 0.5rem;">Step Adherence (Target vs Actual)</label>
+                    <input type="range" id="checkin-steps-adh" min="50" max="150" value="100" style="width:100%;">
+                    <div class="flex-between" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        <span>50%</span><strong id="val-steps-adh">100%</strong><span>150%</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:0.5rem;">
+                    <button id="btn-checkin-prev-2" class="secondary-btn" style="flex:1;">Back</button>
+                    <button id="btn-checkin-next-2" class="primary-btn" style="flex:2;">Next: Wellbeing</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Wellbeing -->
+            <div id="checkin-step-3" class="checkin-step hidden">
+                <h4 style="margin-bottom: 1rem; color: var(--brand-primary);">3. Wellbeing</h4>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display:block; font-size: 0.9rem; margin-bottom: 0.5rem;">Sleep Quality (0-10)</label>
+                    <input type="range" id="checkin-sleep" min="0" max="10" value="8" style="width:100%;">
+                    <div class="flex-between" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        <span>0</span><strong id="val-sleep">8</strong><span>10</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display:block; font-size: 0.9rem; margin-bottom: 0.5rem;">Satiety Level (0-15)</label>
+                    <input type="range" id="checkin-satiety" min="0" max="15" value="8" style="width:100%;">
+                    <div class="flex-between" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                        <span>0 (Hungry)</span><strong id="val-satiety">8</strong><span>15 (Full)</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:0.5rem;">
+                    <button id="btn-checkin-prev-3" class="secondary-btn" style="flex:1;">Back</button>
+                    <button id="btn-checkin-submit" class="primary-btn" style="flex:2;">Complete Check-in</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(e => console.log('SW Registration failed', e));
+            });
+        }
+    </script>
+</body>
+</html>
