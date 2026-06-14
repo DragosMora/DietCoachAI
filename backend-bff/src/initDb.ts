@@ -3,7 +3,7 @@ import path from 'path';
 import pool from './db';
 
 export async function initializeDatabase() {
-  const schemaPath = path.join(__dirname, 'schema.sql');
+  const schemaPath = path.join(__dirname, '../src/schema.sql');
   try {
     const schemaSql = fs.readFileSync(schemaPath, 'utf8');
     
